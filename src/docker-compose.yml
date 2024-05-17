@@ -5,4 +5,4 @@ services:
     image: postgres
 
 volumes:
-  postgress_catalog:
+  postgres_catalog:

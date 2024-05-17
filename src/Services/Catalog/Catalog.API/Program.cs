@@ -9,7 +9,10 @@ builder.Services.AddMediatR(config => {
 
 builder.Services.AddMarten(opts =>
 {
-    opts.Connection(builder.Configuration.GetConnectionString("Database")!);
+    var connection = builder.Configuration.GetConnectionString("Database");
+    opts.Connection(connection!);
+
+    var tets = string.Empty;
     //opts.AutoCreateSchemaObjects
 }).UseLightweightSessions();
 
