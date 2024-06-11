@@ -1,8 +1,7 @@
 
 
 using BuildingBlocks.Exceptions.Handler;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,19 +23,26 @@ builder.Services.AddMarten(opts =>
 {
     var connection = builder.Configuration.GetConnectionString("Database");
     opts.Connection(connection!);
-
-    var tets = string.Empty;
     //opts.AutoCreateSchemaObjects
 }).UseLightweightSessions();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.InitializeMartenWith<CatalogInitialData>();
+}
+
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database"));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
 app.MapCarter();
 
-app.UseExceptionHandler(options => { 
+app.UseExceptionHandler(options =>
+{
 
 
 });
@@ -64,9 +70,15 @@ app.UseExceptionHandler(options => {
 
 //        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 //        context.Response.ContentType = "application/problem+json";
-        
+
 //        await context.Response.WriteAsJsonAsync(problemDetail);
 //    });
 //});
+
+app.UseHealthChecks("/health",
+    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
 
 app.Run();
